@@ -222,32 +222,7 @@ export default {
           
         }
       },
-      async createProject(){
-        const axiosHeaders = {
-          headers: {
-            token: this.$store.state.auth.token
-          }
-        };
-
-        const toSend ={
-          newProject: this.newProject
-        };
-
-        try {
-          const res = await this.$axios.post("/project", toSend, axiosHeaders);
-          console.log(res.data);
-          if (res.data.status == 'success') {
-            this.dialog = false;
-            this.getProjects();
-            this.newProject.lcpCode = "";
-            
-          }
-          
-        } catch (error) {
-          
-        }
-
-      }
+      
     },mounted () {
       this.getProjects();
     },
