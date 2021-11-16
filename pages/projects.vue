@@ -138,7 +138,7 @@
               <v-btn
                 color="blue darken-1"
                 text
-                @click="save"
+                @click="createProject"
               >
                 Save
               </v-btn>
@@ -234,7 +234,7 @@
 
     computed: {
       formTitle () {
-        return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+        return this.editedIndex === -1 ? 'Nuevo Proyecto' : 'Modificar Proyecto'
       },
     },
 
@@ -287,7 +287,10 @@
       },
 
       deleteItemConfirm () {
+        
+        this.deleteProject(this.projects[this.editedIndex])
         this.projects.splice(this.editedIndex, 1)
+        
         this.closeDelete()
       },
 
@@ -310,11 +313,96 @@
       save () {
         if (this.editedIndex > -1) {
           Object.assign(this.projects[this.editedIndex], this.editedItem)
+          console.log(this.editedItem)
         } else {
           this.projects.push(this.editedItem)
+          console.log(this.editedItem)
         }
         this.close()
       },
+      deleteProject(project) {
+        
+        
+      const axiosHeaders = {
+        headers: {
+          token: this.$store.state.auth.token
+        },
+        params: {
+          lcpCode: project.lcpCode
+        }
+      };
+      this.$axios
+        .delete("/project", axiosHeaders)
+        .then(res => {
+          if (res.data.status == "success") {
+            
+          }
+          $nuxt.$emit("time-to-get-devices");
+          return;
+        })
+        .catch(e => {
+          console.log(e);
+          
+          return;
+        });
+    },
+    async createProject(){
+      if (this.editedIndex === -1) {
+        const axiosHeaders = {
+          headers: {
+            token: this.$store.state.auth.token
+          }
+        };
+
+        const toSend ={
+          newProject: this.editedItem
+        };
+
+        try {
+          const res = await this.$axios.post("/project", toSend, axiosHeaders);
+          console.log(res.data);
+          if (res.data.status == 'success') {
+            this.dialog = false;
+            this.initialize();
+            
+            
+          }
+          
+        } catch (error) {
+          
+        }
+      } else {
+
+        const axiosHeaders = {
+          headers: {
+            token: this.$store.state.auth.token
+          }
+        };
+
+        const toSend ={
+          editProject: this.editedItem
+        };
+
+        try {
+          const res = await this.$axios.put("/project", toSend, axiosHeaders);
+          console.log(res.data);
+          if (res.data.status == 'success') {
+            this.dialog = false;
+            this.initialize();
+            
+            
+          }
+          
+        } catch (error) {
+          
+        }
+        
+      }
+
+
+        
+
+      }
     },
   }
 </script>

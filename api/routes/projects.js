@@ -18,7 +18,9 @@ import Project from "../models/project";
 router.post("/project", checkAuth, async (req, res) => {
     try {
       var newProject = req.body.newProject;
-      console.log(newProject);
+      const userId = req.userData.userId;
+      newProject.userId = userId;
+      newProject.status = "OPEN";
       
   
       const project = await Project.create(newProject);
@@ -74,6 +76,64 @@ router.get("/project", checkAuth, async (req, res) => {
   }
 });
 
+//DELETE DEVICE
+router.delete("/project", checkAuth,  async (req, res) => {
+  try {
+    const lcpCode = req.query.lcpCode;
+    
+      
+
+    //deleting device
+    const result = await Project.deleteOne({ lcpCode: lcpCode });
+    const response = {
+      status: "success",
+      data: result
+    };
+
+    return res.json(response);
+    
+
+      
+    }
+
+    
+   catch (error) {
+    console.log("ERROR DELETING PROJECT");
+    console.log(error);
+
+    const response = {
+      status: "error",
+      error: error
+    };
+
+    return res.status(500).json(response);
+  }
+});
+
+//UPDATE DEVICE (SELECTOR)
+router.put("/project", checkAuth, async (req, res) => {
+  try {
+    var editProject = req.body.editProject;
+
+    const project = await Project.replaceOne({lcpCode: editProject.lcpCode},editProject);
+
+    if (project.acknowledged == true ) {
+      const response = {
+        status: "success"
+      };
+
+      return res.json(response);
+    } else {
+      const response = {
+        status: "error"
+      };
+
+      return res.json(response);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 
 

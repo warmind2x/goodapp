@@ -13,7 +13,8 @@ const projectSchema = new Schema({
   locacion: {type: String, required:[true]},
   projectType: {type: String},
   nombre: {type: String, required:[true]},
-  status: {type: String, required:[true]},
+  status: {type: String, required:[true], default: "OPEN"},
+  userId: {type: String, required:[true]},
   created: {type: Date, default: Date.now()}
 });
 
