@@ -168,6 +168,13 @@
       </v-icon>
       <v-icon
         small
+        class="mr-2"
+        @click="editItem(item)"
+      >
+        mdi-eye
+      </v-icon>
+      <v-icon
+        small
         @click="deleteItem(item)"
       >
         mdi-delete

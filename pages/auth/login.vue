@@ -1,48 +1,57 @@
 <template>
-  <div>
-    <div class="grid-container">
-      <div class="grid-x grid-margin-x">
-        <div class="cell small-4">
-          <label
-            >E-mail
-            <input
-              type="email"
-              placeholder="Ingrese Email"
-              aria-describedby="usuarioHelpText"
-              v-model="user.email"
-            />
-          </label>
-          <p class="help-text" id="usuarioHelpText">
-            Ingresa tu E-mail registrado
-          </p>
-        </div>
-      </div>
+<div class="center">
+  <v-card class="mx-auto my-12" max-width="500">
+    <v-img height="250" src="https://img.autocosmos.com/noticias/fotosprinc/NAZ_915e3be9d65c430784a99ad3d13a670a.jpg"></v-img>
 
-      <div class="grid-x grid-margin-x">
-        <div class="cell small-4">
-          <label
-            >Password
-            <input
-              type="password"
-              placeholder="Ingrese Password"
-              aria-describedby="passHelpText"
-              v-model="user.password"
-            />
-          </label>
-          <p class="help-text" id="passHelpText">
-            Ingresa tu password (A-Z, a-z, 0-9)
-          </p>
-        </div>
-      </div>
+    <v-card-title>Login</v-card-title>
+    <v-form v-model="valid">
+    <v-container>
+      <v-row>
+        <v-col
+          cols="12"
+          md="6"
+        >
+          <v-text-field
+            v-model="user.email"
+            :rules="emailRules"
+            
+            label="E-mail"
+            required
+          ></v-text-field>
+        </v-col>
 
-      <div class="grid-x grid-margin-x">
-        <div class="cell small-4">
-          <button class="hollow button" @click="Login()">Login</button>
+        <v-col
+          cols="12"
+          md="6"
+        >
+          <v-text-field
+            v-model="user.password"
+            :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
+            
+            :type="show1 ? 'text' : 'password'"
+            name="input-10-1"
+            label="Password"
+            
+            @click:append="show1 = !show1"
+          ></v-text-field>
+        </v-col>
+
+        <v-col
+        cols="12"
+        md="3"
+        >
+          <v-btn @click="Login">Login</v-btn>
           <NuxtLink to="/auth/register"> Or Register?</NuxtLink>
-        </div>
-      </div>
-    </div>
-  </div>
+        </v-col>
+
+        
+      </v-row>
+    </v-container>
+  </v-form>
+    
+
+  </v-card>
+</div>
 </template>
 
 <script>
@@ -52,6 +61,7 @@ export default {
   layout: "auth",
   data() {
     return {
+      show1: false,
       user: {
         email: "",
         password: "",
@@ -74,7 +84,7 @@ export default {
               this.$store.commit("setAuth", auth);
               //set auth object in localStorage - Grabamos el token en localStorage
               localStorage.setItem("auth", JSON.stringify(auth));
-            $nuxt.$router.push("/");
+            $nuxt.$router.push("/projects");
             return;
           } else {
             if (result.data.status == "error") {
@@ -93,4 +103,11 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+ .center {
+  margin: auto;
+  width: 35%;
+  
+  padding: 1px;
+}
+</style>
