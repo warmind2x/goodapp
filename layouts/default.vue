@@ -77,6 +77,15 @@
           </v-list-item-action>
           <v-list-item-title>Switch drawer (click me)</v-list-item-title>
         </v-list-item>
+
+        <v-list-item @click.native="Logout">
+          <v-list-item-action>
+            <v-icon light>
+              mdi-account-circle-outline
+            </v-icon>
+          </v-list-item-action>
+          <v-list-item-title>Logout</v-list-item-title>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-footer
@@ -96,22 +105,29 @@ export default {
       drawer: false,
       fixed: false,
       items: [
+        
         {
-          icon: 'mdi-apps',
-          title: 'Welcome',
-          to: '/'
-        },
-        {
-          icon: 'mdi-chart-bubble',
+          icon: 'mdi-briefcase-variant-outline',
           title: 'PROYECTOS',
           to: '/projects'
-        }
+        },
+        {
+          icon: 'mdi-cash-multiple',
+          title: 'REQUISICIONES',
+          to: '/requisiciones'
+        },
       ],
       miniVariant: false,
       right: true,
       rightDrawer: false,
       title: 'Vuetify.js'
     }
-  }
+  },
+  methods: {
+    Logout() {
+      localStorage.clear();
+      $nuxt.$router.push("/auth/login");
+    }
+  },
 }
 </script>
