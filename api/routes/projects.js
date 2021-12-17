@@ -51,20 +51,33 @@ router.get("/project", checkAuth, async (req, res) => {
     const userId = req.userData.userId;
 
     //get devices
-    var projects = await Project.find({ userId: userId });
+    await Project.find({  }).populate('requisiciones').exec(function(err,projects){
 
-    //mongoose array to js array
+      console.log(err);
+      console.log(projects);
+
+      if (err) return handleError(err);
+      //mongoose array to js array
     projects = JSON.parse(JSON.stringify(projects));
-
-   
     const response = {
       status: "success",
       data: projects
     };
-
     res.json(response);
+    });
+
+    //mongoose array to js array
+    //projects = JSON.parse(JSON.stringify(projects));
+
+   
+    //const response = {
+     // status: "success",
+     // data: projects
+    //};
+
+    //res.json(response);
   } catch (error) {
-    console.log("ERROR GETTING DEVICES");
+    console.log("ERROR GETTING PROJECTS");
     console.log(error);
 
     const response = {

@@ -256,10 +256,10 @@ export default {
     save() {
       if (this.editedIndex > -1) {
         Object.assign(this.projects[this.editedIndex], this.editedItem);
-        console.log(this.editedItem);
+        
       } else {
         this.projects.push(this.editedItem);
-        console.log(this.editedItem);
+        
       }
       this.close();
     },

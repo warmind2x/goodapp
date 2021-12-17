@@ -1,8 +1,8 @@
 <template>
   <v-data-table
     :headers="headers"
-    :items="desserts"
-    sort-by="calories"
+    :items="requisiciones"
+    sort-by="lcpCode"
     class="elevation-1"
   >
     <template v-slot:top>
@@ -13,7 +13,7 @@
         <v-dialog v-model="dialog" max-width="500px">
           <template v-slot:activator="{ on, attrs }">
             <v-btn color="primary" dark class="mb-2" v-bind="attrs" v-on="on">
-              New Item
+              Nuevo Shopping Cart
             </v-btn>
           </template>
           <v-card>
@@ -24,35 +24,80 @@
             <v-card-text>
               <v-container>
                 <v-row>
+                  <v-col cols="12" sm="12" md="12">
+                    <v-autocomplete
+                      v-model="editedItem.nombreProyecto"
+                      :loading="loading"
+                      :items="items"
+                      :search-input.sync="search"
+                      cache-items
+                      class="mx-4"
+                      flat
+                      hide-no-data
+                      hide-details
+                      label="Nombre"
+                      solo-inverted
+                    ></v-autocomplete>
+                  </v-col>
                   <v-col cols="12" sm="6" md="4">
                     <v-text-field
-                      v-model="editedItem.name"
-                      label="Dessert name"
+                      v-model="editedItem.shoppingCart"
+                      label="Shopping Cart"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="6">
+                    <v-text-field
+                      v-model="editedItem.descripcionGasto"
+                      label="Descripcion Gasto"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-select :items="items" label="Status"></v-select>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.ordenCompra"
+                      label="Orden Compra"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6" md="4">
                     <v-text-field
-                      v-model="editedItem.calories"
-                      label="Calories"
+                      v-model="editedItem.cost"
+                      label="Costo USD"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.fat"
-                      label="Fat (g)"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.carbs"
-                      label="Carbs (g)"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.protein"
-                      label="Protein (g)"
-                    ></v-text-field>
+                    <v-dialog
+                      ref="dialog"
+                      v-model="modal"
+                      :return-value.sync="date"
+                      persistent
+                      width="290px"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          v-model="date"
+                          label="Fecha"
+                          prepend-icon="mdi-calendar"
+                          readonly
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker v-model="date" scrollable>
+                        <v-spacer></v-spacer>
+                        <v-btn text color="primary" @click="modal = false">
+                          Cancel
+                        </v-btn>
+                        <v-btn
+                          text
+                          color="primary"
+                          @click="$refs.dialog.save(date)"
+                        >
+                          OK
+                        </v-btn>
+                      </v-date-picker>
+                    </v-dialog>
                   </v-col>
                 </v-row>
               </v-container>
@@ -61,7 +106,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" text @click="close"> Cancel </v-btn>
-              <v-btn color="blue darken-1" text @click="save"> Save </v-btn>
+              <v-btn color="blue darken-1" text @click="createReq"> Save </v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -98,6 +143,14 @@
 export default {
   data: () => ({
     dialog: false,
+    date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
+    modal: false,
+    loading: false,
+    items: [],
+    search: null,
+    select: null,
+    nombre: [],
+    requisiciones: [],
     dialogDelete: false,
     headers: [
       {
@@ -108,27 +161,27 @@ export default {
       },
       {
         text: "Shopping Cart",
-        value: "sCart",
+        value: "shoppingCart",
       },
       {
         text: "Nombre Projecto",
-        value: "nProject",
+        value: "nombreProyecto",
       },
       {
         text: "Descripcion Compra",
-        value: "descripcion",
+        value: "descripcionGasto",
       },
       {
-        text: "Comprador",
-        value: "buyer",
+        text: "Costo U$D",
+        value: "cost",
       },
       {
         text: "Orden de compra",
-        value: "pOrder",
+        value: "ordenCompra",
       },
       {
-        text: "Gasto estimado (mm-aaaa)",
-        value: "pdate",
+        text: "Gasto estimado (aaaa-mm-dd)",
+        value: "fechaGasto",
       },
 
       { text: "Actions", value: "actions", sortable: false },
@@ -136,28 +189,30 @@ export default {
     buys: [],
     editedIndex: -1,
     editedItem: {
-          lcpCode: "",
-          sCart: null,
-          nProject: "",
-          descripcion: "",
-          buyer:"",
-          pOrder:null,
-          pdate:""
+      lcpCode: "",
+      nombreProyecto: "",
+      shoppingCart: null,
+      descripcionGasto: "",
+      ordenCompra: null,
+      cost: null,
+      fechaGasto: "",
     },
     defaultItem: {
       lcpCode: "",
-          sCart: null,
-          nProject: "",
-          descripcion: "",
-          buyer:"",
-          pOrder:null,
-          pdate:""
+      nombreProyecto: "",
+      shoppingCart: null,
+      descripcionGasto: "",
+      ordenCompra: null,
+      cost: null,
+      fechaGasto: "",
     },
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nueva requisicion" : "Modificar requisicion";
+      return this.editedIndex === -1
+        ? "Nueva requisicion"
+        : "Modificar requisicion";
     },
   },
 
@@ -168,6 +223,10 @@ export default {
     dialogDelete(val) {
       val || this.closeDelete();
     },
+
+    search(val) {
+      val && val !== this.select && this.querySelections(val);
+    },
   },
 
   created() {
@@ -175,37 +234,43 @@ export default {
   },
 
   methods: {
-    initialize() {
-      this.desserts = [
-        {
-          lcpCode: "LCP-210005-01",
-          sCart: 122456783,
-          nProject: "AACC LABORATORIO CENTRAL",
-          descripcion: "COMPRA DE AIRES ACONDICIONADOS EN LABORATORIO CENTRAL",
-          buyer:"JOHAN ALCALA",
-          pOrder:8240785123,
-          pdate:"12-2021"
-
-
+    async initialize() {
+      const axiosHeaders = {
+        headers: {
+          token: this.$store.state.auth.token,
         },
-        
-      ];
+      };
+
+      try {
+        const res = await this.$axios.get("/req", axiosHeaders);
+        console.log(res.data.data);
+        if (res.data.status == "success") {
+          this.requisiciones = res.data.data;
+        }
+      } catch (error) {
+        alert(error);
+        return;
+      }
     },
 
     editItem(item) {
-      this.editedIndex = this.desserts.indexOf(item);
+      
+      this.editedIndex = this.requisiciones.indexOf(item);
       this.editedItem = Object.assign({}, item);
+      
       this.dialog = true;
     },
 
     deleteItem(item) {
-      this.editedIndex = this.desserts.indexOf(item);
+      this.editedIndex = this.requisiciones.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialogDelete = true;
     },
 
     deleteItemConfirm() {
-      this.desserts.splice(this.editedIndex, 1);
+      console.log(this.requisiciones[this.editedIndex]);
+      this.deleteReq(this.requisiciones[this.editedIndex]);
+      this.requisiciones.splice(this.editedIndex, 1);
       this.closeDelete();
     },
 
@@ -227,11 +292,110 @@ export default {
 
     save() {
       if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem);
+        Object.assign(this.requisiciones[this.editedIndex], this.editedItem);
       } else {
-        this.desserts.push(this.editedItem);
+        this.requisiciones.push(this.editedItem);
       }
       this.close();
+    },
+
+    async querySelections(v) {
+      this.loading = true;
+      const axiosHeaders = {
+        headers: {
+          token: this.$store.state.auth.token,
+        },
+      };
+      try {
+        const res = await this.$axios.get("/project", axiosHeaders);
+        console.log(res.data.data);
+        if (res.data.status == "success") {
+          for (let index = 0; index < res.data.data.length; index++) {
+            this.nombre.push(res.data.data[index].nombre);
+          }
+          console.log(this.nombre);
+          setTimeout(() => {
+            this.items = this.nombre.filter((e) => {
+              return (
+                (e || "").toLowerCase().indexOf((v || "").toLowerCase()) > -1
+              );
+            });
+            this.loading = false;
+          }, 500);
+        }
+      } catch (error) {
+        alert(error);
+        return;
+      }
+    },
+
+    async createReq() {
+      if (this.editedIndex === -1) {
+        const axiosHeaders = {
+          headers: {
+            token: this.$store.state.auth.token,
+          },
+        };
+
+        this.editedItem.fechaGasto = this.date;
+
+        const toSend = {
+          
+          newReq: this.editedItem,
+        };
+
+        try {
+          const res = await this.$axios.post("/req", toSend, axiosHeaders);
+          console.log(res.data);
+          if (res.data.status == "success") {
+            this.dialog = false;
+            this.initialize();
+          }
+        } catch (error) {}
+      } else {
+        const axiosHeaders = {
+          headers: {
+            token: this.$store.state.auth.token,
+          },
+        };
+
+        const toSend = {
+          editReq: this.editedItem,
+        };
+
+        try {
+          const res = await this.$axios.put("/req", toSend, axiosHeaders);
+          console.log(res.data);
+          if (res.data.status == "success") {
+            this.dialog = false;
+            this.initialize();
+          }
+        } catch (error) {}
+      }
+    },
+
+    deleteReq(req) {
+      const axiosHeaders = {
+        headers: {
+          token: this.$store.state.auth.token,
+        },
+        params: {
+          shoppingCart: req.shoppingCart,
+        },
+      };
+      this.$axios
+        .delete("/req", axiosHeaders)
+        .then((res) => {
+          if (res.data.status == "success") {
+          }
+          $nuxt.$emit("time-to-get-devices");
+          return;
+        })
+        .catch((e) => {
+          console.log(e);
+
+          return;
+        });
     },
   },
 };

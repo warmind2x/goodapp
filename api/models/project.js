@@ -15,6 +15,7 @@ const projectSchema = new Schema({
   nombre: {type: String, required:[true]},
   status: {type: String, required:[true], default: "OPEN"},
   userId: {type: String, required:[true]},
+  requisiciones: [{ type: Schema.Types.ObjectId, ref: 'Requisicion'}],
   created: {type: Date, default: Date.now()}
 });
 
